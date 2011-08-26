@@ -1,0 +1,65 @@
+name "envire"
+
+using_library 'envire'
+using_library 'asguard'
+
+import_types_from 'base'
+import_types_from 'dense_stereo'
+import_types_from "asguard/BodyState.hpp"
+import_types_from "asguard/Configuration.hpp"
+
+import_types_from "StreamAlignerStatus.hpp"
+
+task_context "Task" do
+
+    property('asguard_config', '/asguard/Configuration').
+	doc 'Configuration options for the asguard robot.'
+
+    property('environment_debug_path', 'string').
+	doc 'if this property is set, the final environment will be written to the given file path.'
+
+    output_port('streamaligner_status', '/aggregator/StreamAlignerStatus').
+	doc 'Provides debug information on the state of the StreamAligner'
+
+    property('start_pose', '/base/samples/RigidBodyState').
+	doc 'path to environment'
+
+    input_port('distance_frames', '/dense_stereo/distance_image').
+	needs_reliable_connection.
+	doc 'distance images'
+
+    input_port('scan_samples', '/base/samples/LaserScan').
+	needs_reliable_connection.
+	doc 'timestamped laser scans'
+
+    input_port('bodystate_samples', '/asguard/BodyState').
+	needs_reliable_connection.
+	doc 'timestamped samples providing the configuration state of the robot.'
+
+    input_port('orientation_samples', '/base/samples/RigidBodyState').
+	needs_reliable_connection.
+	doc 'timestamped samples providing the orientation of the robot.'
+
+    transformer do
+	max_latency( 0.2 )
+
+	transformation("laser", "body")	
+	transformation("lcamera", "body")
+	transformation("body", "odometry")
+
+	align_port("scan_samples", 0.02) 
+	align_port("distance_frames", 0.1)
+	align_port("bodystate_samples", 0.01)
+    end
+
+    port_driven
+end
+
+# Declares a deployment, i.e. an actual executable that contains various tasks.
+deployment "envire_test" do
+    # This is a test deployment that should not be installed
+    do_not_install
+
+    task("envire", "Task")
+end
+
