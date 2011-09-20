@@ -4,20 +4,22 @@
 #include <envire/Core.hpp>
 #include <envire/maps/Pointcloud.hpp>
 #include <envire/maps/LaserScan.hpp>
+#include <envire/maps/Grids.hpp>
 #include <envire/operators/ScanMeshing.hpp>
+#include <envire/operators/DistanceGridToPointcloud.hpp>
 
 #include <base/angle.h>
 #include <algorithm>
 
 using namespace envire;
 
-Task::Task(std::string const& name, TaskCore::TaskState initial_state)
-    : TaskBase(name, initial_state), env( new Environment() )
+Task::Task(std::string const& name)
+    : TaskBase(name), env( new Environment() )
 {
 }
 
-Task::Task(std::string const& name, RTT::ExecutionEngine* engine, TaskCore::TaskState initial_state)
-    : TaskBase(name, engine, initial_state), env( new Environment() )
+Task::Task(std::string const& name, RTT::ExecutionEngine* engine)
+    : TaskBase(name, engine), env( new Environment() )
 {
 }
 
@@ -30,11 +32,33 @@ void Task::bodystate_samplesTransformerCallback(const base::Time &ts, const ::as
     bodyState = bodystate_samples_sample;
 }
 
-void Task::distance_framesTransformerCallback(const base::Time &ts, const ::dense_stereo::distance_image &distance_frames_sample)
+void Task::distance_framesTransformerCallback(const base::Time &ts, const ::base::samples::DistanceImage &distance_frames_sample)
 {
     Eigen::Affine3d body2odometry, lcamera2body;
     if( !_body2odometry.get( ts, body2odometry ) || !_lcamera2body.get( ts, lcamera2body ) )
-	return;
+        return;
+
+    FrameNode* bodyFrame = new FrameNode( body2odometry );
+    env->addChild( env->getRootNode(), bodyFrame );
+    
+    // get the distance image and set up the operator chain
+    FrameNode* lcameraFrame = new FrameNode( lcamera2body );
+    env->addChild( bodyFrame, lcameraFrame );
+
+    DistanceGrid *distanceGrid = new DistanceGrid(distance_frames_sample);
+    env->setFrameNode( distanceGrid, lcameraFrame );
+
+    Pointcloud *distancePc = new Pointcloud();
+    env->setFrameNode( distancePc, lcameraFrame );
+
+    DistanceGridToPointcloud *dgOp = new DistanceGridToPointcloud();
+    env->attachItem( dgOp );
+    dgOp->addInput( distanceGrid );
+    dgOp->addOutput( distancePc );
+
+    dgOp->updateAll();
+
+    std::cout << "distance_frame converted to pointcloud" << std::endl;
 }
 
 struct Statistics
@@ -152,8 +176,8 @@ void Task::updateHook()
     // only write output if the aggregator actually had some data
     // this is slightly implicit, and could be made more explicit in
     // the aggregator
-    if( transformer.getStatus().latest_time > base::Time() )
-	_streamaligner_status.write( transformer.getStatus() );
+//    if( transformer.getStatus().latest_time > base::Time() )
+//	_streamaligner_status.write( transformer.getStatus() );
 }
 
 void Task::stopHook()

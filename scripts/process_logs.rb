@@ -30,7 +30,7 @@ log_file = args[0]
 replay = Asguard::Replay.new( log_file )
 
 Orocos.initialize
-Orocos::Process.spawn 'envire_test', 'valgrind'=>false, "wait" => 1000 do |p|
+Orocos::Process.run 'envire_test', :valgrind=>false, :wait => 1 do |p|
     envire = p.task('envire')
 
     envire.environment_debug_path = out_file
@@ -40,17 +40,17 @@ Orocos::Process.spawn 'envire_test', 'valgrind'=>false, "wait" => 1000 do |p|
     replay.log.odometry.odometry_samples.connect_to( envire.dynamic_transformations, :type => :buffer, :size => 1000 ) do |data|
 	yaw = data.orientation.to_euler(2,1,0)[0]
 	data.orientation = Eigen::Quaternion.from_angle_axis( -yaw, Eigen::Vector3.UnitZ ) *
-	    data.orientation 
+	    data.orientation
 	data.position[0] = 0
 	data.position[1] = 0
 	data
     end
     replay.log.dynamixel.lowerDynamixel2UpperDynamixel.connect_to( envire.dynamic_transformations, :type => :buffer, :size => 1000 )
-    #if @log_replay.has_task? :dense_stereo and @log_replay.dense_stereo.has_port? :distance_frame
-    #    @log_replay.dense_stereo.distance_frame.connect_to( @eslam.distance_frames, :type => :buffer, :size => 2 )
-    #    @has_distance_images = true
-    #    puts "INFO: Using distance images."
-    #end
+    if  replay.log.has_task? :stereo and replay.log.stereo.has_port? :distance_frame
+        replay.log.stereo.distance_frame.connect_to( envire.distance_frames, :type => :buffer, :size => 2 )
+        @has_distance_images = true
+        puts "INFO: Using distance images."
+    end
 
     tf = Asguard::Transform.new [:dynamixel]
     tf.setup_filters replay

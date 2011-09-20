@@ -16,15 +16,15 @@ namespace envire {
     protected:
 
         virtual void bodystate_samplesTransformerCallback(const base::Time &ts, const ::asguard::BodyState &bodystate_samples_sample);
-        virtual void distance_framesTransformerCallback(const base::Time &ts, const ::dense_stereo::distance_image &distance_frames_sample);
+        virtual void distance_framesTransformerCallback(const base::Time &ts, const ::base::samples::DistanceImage &distance_frames_sample);
         virtual void scan_samplesTransformerCallback(const base::Time &ts, const ::base::samples::LaserScan &scan_samples_sample);
 
 	boost::shared_ptr<envire::Environment> env;
 	asguard::BodyState bodyState;
 
     public:
-        Task(std::string const& name = "envire::Task", TaskCore::TaskState initial_state = Stopped);
-        Task(std::string const& name, RTT::ExecutionEngine* engine, TaskCore::TaskState initial_state = Stopped);
+        Task(std::string const& name = "envire::Task");
+        Task(std::string const& name, RTT::ExecutionEngine* engine);
 
 	~Task();
 
