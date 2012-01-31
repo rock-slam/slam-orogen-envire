@@ -9,6 +9,7 @@ import_types_from "asguard/BodyState.hpp"
 import_types_from "asguard/Configuration.hpp"
 
 import_types_from "aggregator/StreamAlignerStatus.hpp"
+import_types_from "envire/core/EventTypes.hpp"
 
 task_context "Task" do
 
@@ -51,6 +52,19 @@ task_context "Task" do
 	align_port("distance_frames", 0.2)
 	align_port("bodystate_samples", 0.01)
     end
+
+    port_driven
+end
+
+task_context "SynchronizationTransmitter" do
+    output_port('evire_event', '/envire/EnvireBinaryEvent').
+        doc('envire binary event')
+end
+
+task_context "SynchronizationReceiver" do
+    input_port('evire_event', '/envire/EnvireBinaryEvent').
+        needs_reliable_connection.
+        doc('envire binary event')
 
     port_driven
 end
