@@ -4,7 +4,6 @@ using_library 'envire'
 using_library 'asguard'
 
 import_types_from 'base'
-import_types_from 'stereo'
 import_types_from "asguard/BodyState.hpp"
 import_types_from "asguard/Configuration.hpp"
 
