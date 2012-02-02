@@ -189,8 +189,7 @@ void Task::stopHook()
     // write environment, if path is given
     if( !_environment_debug_path.value().empty() )
     {
-	envire::Serialization so;
-	so.serialize(env.get(), _environment_debug_path.value() );
+	env->serialize( _environment_debug_path.value() );
     }
 
     double min_stdev = 100;
