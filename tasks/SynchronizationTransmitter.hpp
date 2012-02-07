@@ -7,7 +7,7 @@
 #include <envire/core/Serialization.hpp>
 #include <envire/Core.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/circular_buffer.hpp>
+#include <boost/thread/mutex.hpp>
 
 namespace envire {
 
@@ -33,7 +33,8 @@ namespace envire {
         
     protected:
         boost::shared_ptr<envire::Environment> env;
-        boost::circular_buffer<envire::EnvireBinaryEvent*> buffer;
+        std::list<envire::EnvireBinaryEvent*> buffer;
+        boost::mutex mutex;
         
     public:
         /** TaskContext constructor for SynchronizationTransmitter

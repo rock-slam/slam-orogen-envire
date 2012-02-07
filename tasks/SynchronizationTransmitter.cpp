@@ -22,7 +22,9 @@ SynchronizationTransmitter::~SynchronizationTransmitter()
 void SynchronizationTransmitter::handle(envire::EnvireBinaryEvent* binary_event)
 {
     // save binary event and trigger update hook
-    buffer.push_back(binary_event);
+    mutex.lock();
+        buffer.push_back(binary_event);
+    mutex.unlock();
     
     this->getActivity()->trigger();
 }
@@ -44,7 +46,6 @@ bool SynchronizationTransmitter::startHook()
     if (! SynchronizationTransmitterBase::startHook())
         return false;
     
-    buffer.set_capacity(50);
     env->addEventHandler(this);
     
     return true;
@@ -55,8 +56,10 @@ void SynchronizationTransmitter::updateHook()
     while(buffer.size() > 0)
     {
         // write binary events to port
-        envire::EnvireBinaryEvent* binary_event = buffer.front();
-        buffer.pop_front();
+        mutex.lock();
+            envire::EnvireBinaryEvent* binary_event = buffer.front();
+            buffer.pop_front();
+        mutex.unlock();
         
         if(binary_event)
         {
