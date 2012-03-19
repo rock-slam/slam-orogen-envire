@@ -58,6 +58,9 @@ end
 task_context "SynchronizationTransmitter" do
     output_port('evire_event', '/envire/EnvireBinaryEvent').
         doc('envire binary event')
+
+    operation('loadEnvironment').
+        argument('path', 'string', 'path')
 end
 
 task_context "SynchronizationReceiver" do

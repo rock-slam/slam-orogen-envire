@@ -29,6 +29,7 @@ namespace envire {
     {
 	friend class SynchronizationTransmitterBase;
     protected:
+        void loadEnvironment(const std::string &path);
         virtual void handle( EnvireBinaryEvent* binary_event );
         
     protected:

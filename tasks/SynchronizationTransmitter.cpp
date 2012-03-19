@@ -18,6 +18,11 @@ SynchronizationTransmitter::~SynchronizationTransmitter()
 {
 }
 
+void SynchronizationTransmitter::loadEnvironment(const std::string &path)
+{
+    env.reset(envire::Environment::unserialize(path));
+    env->addEventHandler(this);
+}
 
 void SynchronizationTransmitter::handle(envire::EnvireBinaryEvent* binary_event)
 {
