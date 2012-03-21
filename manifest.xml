@@ -8,7 +8,6 @@
   <logo>dummy-logo-url</logo>
 
   <depend package="slam/envire" />
-  <depend package="asguard/asguard" />
 
   <versioncontrol type="git" url="" />
   <export>

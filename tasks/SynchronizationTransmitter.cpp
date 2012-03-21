@@ -68,7 +68,7 @@ void SynchronizationTransmitter::updateHook()
         
         if(binary_event)
         {
-            _evire_event.write(*binary_event);
+            _envire_event.write(*binary_event);
         }
         
         delete binary_event;
