@@ -5,12 +5,12 @@
 using namespace envire;
 
 SynchronizationTransmitter::SynchronizationTransmitter(std::string const& name, TaskCore::TaskState initial_state)
-    : SynchronizationTransmitterBase(name, initial_state), env(new Environment())
+    : SynchronizationTransmitterBase(name, initial_state), env(new envire::Environment()), envireEventDispatcher(NULL)
 {
 }
 
 SynchronizationTransmitter::SynchronizationTransmitter(std::string const& name, RTT::ExecutionEngine* engine, TaskCore::TaskState initial_state)
-    : SynchronizationTransmitterBase(name, engine, initial_state), env(new Environment())
+    : SynchronizationTransmitterBase(name, engine, initial_state), env(new envire::Environment()), envireEventDispatcher(NULL)
 {
 }
 
@@ -20,18 +20,9 @@ SynchronizationTransmitter::~SynchronizationTransmitter()
 
 void SynchronizationTransmitter::loadEnvironment(const std::string &path)
 {
+    if(envireEventDispatcher && envireEventDispatcher->isAttached())
+        envireEventDispatcher->detachEventHandler(env.get());
     env.reset(envire::Environment::unserialize(path));
-    env->addEventHandler(this);
-}
-
-void SynchronizationTransmitter::handle(envire::EnvireBinaryEvent* binary_event)
-{
-    // save binary event and trigger update hook
-    mutex.lock();
-        buffer.push_back(binary_event);
-    mutex.unlock();
-    
-    this->getActivity()->trigger();
 }
 
 
@@ -51,27 +42,22 @@ bool SynchronizationTransmitter::startHook()
     if (! SynchronizationTransmitterBase::startHook())
         return false;
     
-    env->addEventHandler(this);
+    delete envireEventDispatcher;
+    envireEventDispatcher = new envire::BinaryEventDispatcher(_envire_event);
+    envireEventDispatcher->useEventQueue(true);
     
     return true;
 }
 
 void SynchronizationTransmitter::updateHook()
 {
-    while(buffer.size() > 0)
+    if(!envireEventDispatcher->isAttached() && _envire_event.connected())
+        envireEventDispatcher->attachEventHandler(env.get());
+    
+    if(envireEventDispatcher->isAttached())
     {
-        // write binary events to port
-        mutex.lock();
-            envire::EnvireBinaryEvent* binary_event = buffer.front();
-            buffer.pop_front();
-        mutex.unlock();
-        
-        if(binary_event)
-        {
-            _envire_event.write(*binary_event);
-        }
-        
-        delete binary_event;
+        envireEventDispatcher->setTime(base::Time::now());
+        envireEventDispatcher->flush();
     }
 }
 
@@ -84,7 +70,8 @@ void SynchronizationTransmitter::stopHook()
 {
     SynchronizationTransmitterBase::stopHook();
     
-    env->removeEventHandler(this);
+    delete envireEventDispatcher;
+    envireEventDispatcher = NULL;
 }
 
 // void SynchronizationTransmitter::cleanupHook()

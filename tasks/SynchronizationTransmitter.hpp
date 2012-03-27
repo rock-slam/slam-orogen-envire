@@ -10,6 +10,56 @@
 #include <boost/thread/mutex.hpp>
 
 namespace envire {
+    
+    
+    class BinaryEventDispatcher : public SynchronizationEventHandler
+    {
+        RTT::OutputPort<EnvireBinaryEvent> &port;
+        base::Time time;
+        bool attached;
+        long event_counter;
+
+    public:
+        BinaryEventDispatcher( RTT::OutputPort<EnvireBinaryEvent> &port)
+            : port( port ), attached(false), event_counter(0)
+        {
+        }
+
+        void handle( EnvireBinaryEvent* binary_event )
+        {
+            // set the current timestamp
+            binary_event->time = time;
+
+            // write to the port
+            port.write( *binary_event );
+            delete binary_event;
+            binary_event = NULL;
+        }
+
+        void setTime( base::Time time )
+        {
+            this->time = time;
+        }
+        
+        void attachEventHandler( Environment* env )
+        {
+            // register this class as event handler for environment
+            env->addEventHandler( this );
+            attached = true;
+        }
+        
+        void detachEventHandler( Environment* env )
+        {
+            env->removeEventHandler( this );
+            attached = false;
+        }
+        
+        bool isAttached()
+        {
+            return attached;
+        }
+    };
+    
 
     /*! \class SynchronizationTransmitter 
      * \brief The task context provides and requires services. It uses an ExecutionEngine to perform its functions.
@@ -25,17 +75,15 @@ namespace envire {
      \endverbatim
      *  It can be dynamically adapted when the deployment is called with a prefix argument. 
      */
-    class SynchronizationTransmitter : public SynchronizationTransmitterBase, public envire::SynchronizationEventHandler
+    class SynchronizationTransmitter : public SynchronizationTransmitterBase
     {
 	friend class SynchronizationTransmitterBase;
     protected:
         void loadEnvironment(const std::string &path);
-        virtual void handle( EnvireBinaryEvent* binary_event );
         
     protected:
         boost::shared_ptr<envire::Environment> env;
-        std::list<envire::EnvireBinaryEvent*> buffer;
-        boost::mutex mutex;
+        envire::BinaryEventDispatcher* envireEventDispatcher;
         
     public:
         /** TaskContext constructor for SynchronizationTransmitter
