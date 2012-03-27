@@ -4,10 +4,7 @@
 #define ENVIRE_SYNCHRONIZATIONTRANSMITTER_TASK_HPP
 
 #include "envire/SynchronizationTransmitterBase.hpp"
-#include <envire/core/Serialization.hpp>
 #include <envire/Core.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/thread/mutex.hpp>
 
 namespace envire {
 
@@ -25,17 +22,14 @@ namespace envire {
      \endverbatim
      *  It can be dynamically adapted when the deployment is called with a prefix argument. 
      */
-    class SynchronizationTransmitter : public SynchronizationTransmitterBase, public envire::SynchronizationEventHandler
+    class SynchronizationTransmitter : public SynchronizationTransmitterBase
     {
 	friend class SynchronizationTransmitterBase;
     protected:
         void loadEnvironment(const std::string &path);
-        virtual void handle( EnvireBinaryEvent* binary_event );
         
     protected:
         boost::shared_ptr<envire::Environment> env;
-        std::list<envire::EnvireBinaryEvent*> buffer;
-        boost::mutex mutex;
         
     public:
         /** TaskContext constructor for SynchronizationTransmitter

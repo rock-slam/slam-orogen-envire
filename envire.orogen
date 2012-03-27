@@ -6,7 +6,7 @@ import_types_from 'base'
 import_types_from "envire/core/EventTypes.hpp"
 
 task_context "SynchronizationTransmitter" do
-    output_port('envire_event', '/envire/EnvireBinaryEvent').
+    output_port('envire_events', 'std/vector</envire/EnvireBinaryEvent>').
         doc('envire binary event')
 
     operation('loadEnvironment').
@@ -14,7 +14,7 @@ task_context "SynchronizationTransmitter" do
 end
 
 task_context "SynchronizationReceiver" do
-    input_port('evire_event', '/envire/EnvireBinaryEvent').
+    input_port('envire_events', 'std/vector</envire/EnvireBinaryEvent>').
         needs_reliable_connection.
         doc('envire binary event')
 
