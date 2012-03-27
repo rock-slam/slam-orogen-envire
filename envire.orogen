@@ -14,7 +14,7 @@ task_context "SynchronizationTransmitter" do
 end
 
 task_context "SynchronizationReceiver" do
-    input_port('evire_event', '/envire/EnvireBinaryEvent').
+    input_port('envire_event', '/envire/EnvireBinaryEvent').
         needs_reliable_connection.
         doc('envire binary event')
 

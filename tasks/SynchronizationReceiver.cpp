@@ -41,7 +41,7 @@ SynchronizationReceiver::~SynchronizationReceiver()
 void SynchronizationReceiver::updateHook()
 {
     envire::EnvireBinaryEvent binary_event;
-    while (_evire_event.read(binary_event) == RTT::NewData) 
+    while (_envire_event.read(binary_event) == RTT::NewData) 
     {
         EnvironmentItem* item = 0;
         if(binary_event.type == event::ITEM && (binary_event.operation == event::ADD || binary_event.operation == event::UPDATE ))
