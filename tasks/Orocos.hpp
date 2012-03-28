@@ -6,50 +6,60 @@
 
 namespace envire
 {
-    /** Class that allows to bind an envire environment to an orocos port. It
-     * dumps the data from the environment to the port
-     */
-    class OrocosEmitter : public envire::SynchronizationEventHandler
+    class OrocosEmitter : public SynchronizationEventHandler
     {
-        envire::Environment* env;
+        typedef std::vector<BinaryEvent> BinaryEvents;
+        RTT::OutputPort< BinaryEvents > &port;
+        base::Time time;
+        bool attached;
+        long event_counter;
 
-        typedef std::vector<envire::BinaryEvent> BinaryEvents;
-        RTT::OutputPort<BinaryEvents>& port;
-
-        std::vector<envire::EnvireBinaryEvent*> buffer;
-        BinaryEvents events;
+        std::vector<EnvireBinaryEvent> msg_buffer;
 
     public:
-        OrocosEmitter(envire::Environment* env, RTT::OutputPort<BinaryEvents>& port)
-            : env(env), port(port)
+        OrocosEmitter( RTT::OutputPort< BinaryEvents > &port)
+            : port( port ), attached(false), event_counter(0)
         {
-            env->addEventHandler(this);
         }
 
-        ~OrocosEmitter()
+        void handle( EnvireBinaryEvent* binary_event )
         {
-            env->removeEventHandler(this);
-        }
-
-        void handle(envire::EnvireBinaryEvent* binary_event)
-        {
-            buffer.push_back(binary_event);
+            // set the current timestamp
+            binary_event->time = time;
+            msg_buffer.push_back( EnvireBinaryEvent() );
+            msg_buffer.back().move(*binary_event);
+            delete binary_event;
         }
 
         void flush()
         {
-            if (buffer.empty())
-                return;
+            msg_buffer.reserve(msgQueue.size());
+            msg_buffer.clear();
+            SynchronizationEventHandler::flush();
+            port.write(msg_buffer);
+        }
 
-            events.resize(buffer.size());
-            for (unsigned int i = 0; i < buffer.size(); ++i)
-            {
-                events[i].move(*buffer[i]);
-                delete buffer[i];
-            }
-            buffer.clear();
-            port.write(events);
-            events.clear();
+        void setTime( base::Time time )
+        {
+            this->time = time;
+        }
+        
+        void attachEventHandler( Environment* env )
+        {
+            // register this class as event handler for environment
+            env->addEventHandler( this );
+            attached = true;
+        }
+        
+        void detachEventHandler( Environment* env )
+        {
+            env->removeEventHandler( this );
+            attached = false;
+        }
+        
+        bool isAttached()
+        {
+            return attached;
         }
     };
 }

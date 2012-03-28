@@ -7,6 +7,7 @@
 #include <envire/Core.hpp>
 
 namespace envire {
+    class OrocosEmitter;
 
     /*! \class SynchronizationTransmitter 
      * \brief The task context provides and requires services. It uses an ExecutionEngine to perform its functions.
@@ -30,6 +31,7 @@ namespace envire {
         
     protected:
         boost::shared_ptr<envire::Environment> env;
+        envire::OrocosEmitter* envireEventDispatcher;
         
     public:
         /** TaskContext constructor for SynchronizationTransmitter

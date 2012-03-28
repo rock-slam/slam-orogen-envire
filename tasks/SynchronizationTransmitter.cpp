@@ -6,12 +6,12 @@
 using namespace envire;
 
 SynchronizationTransmitter::SynchronizationTransmitter(std::string const& name, TaskCore::TaskState initial_state)
-    : SynchronizationTransmitterBase(name, initial_state)
+    : SynchronizationTransmitterBase(name, initial_state), env(new envire::Environment()), envireEventDispatcher(NULL)
 {
 }
 
 SynchronizationTransmitter::SynchronizationTransmitter(std::string const& name, RTT::ExecutionEngine* engine, TaskCore::TaskState initial_state)
-    : SynchronizationTransmitterBase(name, engine, initial_state)
+    : SynchronizationTransmitterBase(name, engine, initial_state), env(new envire::Environment()), envireEventDispatcher(NULL)
 {
 }
 
@@ -21,10 +21,11 @@ SynchronizationTransmitter::~SynchronizationTransmitter()
 
 void SynchronizationTransmitter::loadEnvironment(const std::string &path)
 {
+    if(envireEventDispatcher && envireEventDispatcher->isAttached())
+        envireEventDispatcher->detachEventHandler(env.get());
     env.reset(envire::Environment::unserialize(path));
-    OrocosEmitter emitter(env.get(), _envire_events);
-    emitter.flush();
 }
+
 
 /// The following lines are template definitions for the various state machine
 // hooks defined by Orocos::RTT. See SynchronizationTransmitter.hpp for more detailed
@@ -42,11 +43,23 @@ bool SynchronizationTransmitter::startHook()
     if (! SynchronizationTransmitterBase::startHook())
         return false;
     
+    delete envireEventDispatcher;
+    envireEventDispatcher = new envire::OrocosEmitter(_envire_events);
+    envireEventDispatcher->useEventQueue(true);
+    
     return true;
 }
 
 void SynchronizationTransmitter::updateHook()
 {
+    if(!envireEventDispatcher->isAttached() && _envire_events.connected())
+        envireEventDispatcher->attachEventHandler(env.get());
+    
+    if(envireEventDispatcher->isAttached())
+    {
+        envireEventDispatcher->setTime(base::Time::now());
+        envireEventDispatcher->flush();
+    }
 }
 
 // void SynchronizationTransmitter::errorHook()
@@ -57,6 +70,9 @@ void SynchronizationTransmitter::updateHook()
 void SynchronizationTransmitter::stopHook()
 {
     SynchronizationTransmitterBase::stopHook();
+    
+    delete envireEventDispatcher;
+    envireEventDispatcher = NULL;
 }
 
 // void SynchronizationTransmitter::cleanupHook()

@@ -20,3 +20,12 @@ task_context "SynchronizationReceiver" do
 
     port_driven
 end
+
+deployment "envire_synchronisation_test" do
+    # This is a test deployment that should not be installed
+    do_not_install
+
+    task("sync_transmitter", "SynchronizationTransmitter").
+        periodic(0.1)
+    task("sync_receiver", "SynchronizationReceiver")
+end
