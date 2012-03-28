@@ -22,7 +22,7 @@ SynchronizationTransmitter::~SynchronizationTransmitter()
 void SynchronizationTransmitter::loadEnvironment(const std::string &path)
 {
     if(envireEventDispatcher && envireEventDispatcher->isAttached())
-        envireEventDispatcher->detachEventHandler(env.get());
+        envireEventDispatcher->detach();
     env.reset(envire::Environment::unserialize(path));
 }
 
@@ -53,7 +53,7 @@ bool SynchronizationTransmitter::startHook()
 void SynchronizationTransmitter::updateHook()
 {
     if(!envireEventDispatcher->isAttached() && _envire_events.connected())
-        envireEventDispatcher->attachEventHandler(env.get());
+        envireEventDispatcher->attach(env.get());
     
     if(envireEventDispatcher->isAttached())
     {

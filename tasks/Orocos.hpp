@@ -11,15 +11,22 @@ namespace envire
         typedef std::vector<BinaryEvent> BinaryEvents;
         RTT::OutputPort< BinaryEvents > &port;
         base::Time time;
-        bool attached;
         long event_counter;
+
+        envire::Environment* env;
 
         std::vector<EnvireBinaryEvent> msg_buffer;
 
     public:
         OrocosEmitter( RTT::OutputPort< BinaryEvents > &port)
-            : port( port ), attached(false), event_counter(0)
+            : port( port ), event_counter(0), env(0)
         {
+        }
+
+        OrocosEmitter( envire::Environment* env, RTT::OutputPort< BinaryEvents > &port)
+            : port( port ), event_counter(0), env(0)
+        {
+            attach(env);
         }
 
         void handle( EnvireBinaryEvent* binary_event )
@@ -44,22 +51,22 @@ namespace envire
             this->time = time;
         }
         
-        void attachEventHandler( Environment* env )
+        void attach( Environment* env )
         {
             // register this class as event handler for environment
             env->addEventHandler( this );
-            attached = true;
+            this->env = env;
         }
         
-        void detachEventHandler( Environment* env )
+        void detach()
         {
             env->removeEventHandler( this );
-            attached = false;
+            this->env = NULL;
         }
         
         bool isAttached()
         {
-            return attached;
+            return env;
         }
     };
 }
