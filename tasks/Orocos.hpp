@@ -29,6 +29,12 @@ namespace envire
             attach(env);
         }
 
+        ~OrocosEmitter()
+        {
+            if (env)
+                detach();
+        }
+
         void handle( EnvireBinaryEvent* binary_event )
         {
             // set the current timestamp
@@ -40,10 +46,12 @@ namespace envire
 
         void flush()
         {
-            msg_buffer.reserve(msgQueue.size());
-            msg_buffer.clear();
+            msg_buffer.reserve(msg_buffer.size() + msgQueue.size());
             SynchronizationEventHandler::flush();
-            port.write(msg_buffer);
+            if (!msg_buffer.empty())
+                port.write(msg_buffer);
+
+            msg_buffer.clear();
         }
 
         void setTime( base::Time time )

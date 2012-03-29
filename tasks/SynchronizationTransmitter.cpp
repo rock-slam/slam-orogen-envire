@@ -21,9 +21,11 @@ SynchronizationTransmitter::~SynchronizationTransmitter()
 
 void SynchronizationTransmitter::loadEnvironment(const std::string &path)
 {
-    if(envireEventDispatcher && envireEventDispatcher->isAttached())
-        envireEventDispatcher->detach();
     env.reset(envire::Environment::unserialize(path));
+    envire::OrocosEmitter emitter(_envire_events);
+    emitter.setTime(base::Time::now());
+    emitter.attach(env.get());
+    emitter.flush();
 }
 
 
@@ -43,23 +45,11 @@ bool SynchronizationTransmitter::startHook()
     if (! SynchronizationTransmitterBase::startHook())
         return false;
     
-    delete envireEventDispatcher;
-    envireEventDispatcher = new envire::OrocosEmitter(_envire_events);
-    envireEventDispatcher->useEventQueue(true);
-    
     return true;
 }
 
 void SynchronizationTransmitter::updateHook()
 {
-    if(!envireEventDispatcher->isAttached() && _envire_events.connected())
-        envireEventDispatcher->attach(env.get());
-    
-    if(envireEventDispatcher->isAttached())
-    {
-        envireEventDispatcher->setTime(base::Time::now());
-        envireEventDispatcher->flush();
-    }
 }
 
 // void SynchronizationTransmitter::errorHook()
@@ -70,9 +60,6 @@ void SynchronizationTransmitter::updateHook()
 void SynchronizationTransmitter::stopHook()
 {
     SynchronizationTransmitterBase::stopHook();
-    
-    delete envireEventDispatcher;
-    envireEventDispatcher = NULL;
 }
 
 // void SynchronizationTransmitter::cleanupHook()
