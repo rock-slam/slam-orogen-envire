@@ -6,7 +6,7 @@ import_types_from 'base'
 import_types_from "envire/core/EventTypes.hpp"
 
 task_context "SynchronizationTransmitter" do
-    output_port('envire_events', 'std/vector</envire/EnvireBinaryEvent>').
+    output_port('envire_events', 'std/vector</envire/BinaryEvent>').
         doc('envire binary event')
 
     operation('loadEnvironment').
@@ -14,7 +14,10 @@ task_context "SynchronizationTransmitter" do
 end
 
 task_context "SynchronizationReceiver" do
-    input_port('envire_events', 'std/vector</envire/EnvireBinaryEvent>').
+    property('export_directory', '/std/string').
+        doc "if set to a non-empty value, an envire scene will be saved for each received binary event"
+
+    input_port('envire_events', 'std/vector</envire/BinaryEvent>').
         needs_reliable_connection.
         doc('envire binary event')
 

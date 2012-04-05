@@ -30,6 +30,7 @@ namespace envire {
     protected:
         boost::shared_ptr<envire::Environment> env;
         envire::BinarySerialization serialization;
+        int mCount;
 
     public:
         /** TaskContext constructor for SynchronizationReceiver
@@ -70,7 +71,7 @@ namespace envire {
          * stay in Stopped. Otherwise, it goes into Running and updateHook()
          * will be called.
          */
-        // bool startHook();
+        bool startHook();
 
         /** This hook is called by Orocos when the component is in the Running
          * state, at each activity step. Here, the activity gives the "ticks"
