@@ -11,20 +11,17 @@ namespace envire
         typedef std::vector<BinaryEvent> BinaryEvents;
         RTT::OutputPort< BinaryEvents > &port;
         base::Time time;
-        long event_counter;
 
         envire::Environment* env;
 
-        std::vector<EnvireBinaryEvent> msg_buffer;
-
     public:
         OrocosEmitter( RTT::OutputPort< BinaryEvents > &port)
-            : port( port ), event_counter(0), env(0)
+            : port( port ), env(0)
         {
         }
 
         OrocosEmitter( envire::Environment* env, RTT::OutputPort< BinaryEvents > &port)
-            : port( port ), event_counter(0), env(0)
+            : port( port ), env(0)
         {
             attach(env);
         }
@@ -35,23 +32,17 @@ namespace envire
                 detach();
         }
 
-        void handle( EnvireBinaryEvent* binary_event )
+        void handle( std::vector<BinaryEvent>& events )
         {
-            // set the current timestamp
-            binary_event->time = time;
-            msg_buffer.push_back( EnvireBinaryEvent() );
-            msg_buffer.back().move(*binary_event);
-            delete binary_event;
-        }
+	    // timestamp all the events
+	    for( std::vector<BinaryEvent>::iterator it = events.begin();
+		    it != events.end(); it++ )
+	    {
+		it->time = time;
+	    }
 
-        void flush()
-        {
-            msg_buffer.reserve(msg_buffer.size() + msgQueue.size());
-            SynchronizationEventHandler::flush();
-            if (!msg_buffer.empty())
-                port.write(msg_buffer);
-
-            msg_buffer.clear();
+	    // and write to port
+	    port.write( events );
         }
 
         void setTime( base::Time time )
