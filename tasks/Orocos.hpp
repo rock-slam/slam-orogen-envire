@@ -8,21 +8,27 @@ namespace envire
 {
     class OrocosEmitter : public SynchronizationEventHandler
     {
+    public:
         typedef std::vector<BinaryEvent> BinaryEvents;
-        RTT::OutputPort< BinaryEvents > &port;
+        typedef RTT::extras::ReadOnlyPointer<BinaryEvents> Ptr;
+    private:
+        RTT::OutputPort< Ptr > &port;
         base::Time time;
 
         envire::Environment* env;
 
+
     public:
-        OrocosEmitter( RTT::OutputPort< BinaryEvents > &port)
+        OrocosEmitter( RTT::OutputPort< Ptr > &port)
             : port( port ), env(0)
         {
+            useEventQueue(true);
         }
 
-        OrocosEmitter( envire::Environment* env, RTT::OutputPort< BinaryEvents > &port)
+        OrocosEmitter( envire::Environment* env, RTT::OutputPort< Ptr > &port)
             : port( port ), env(0)
         {
+            useEventQueue(true);
             attach(env);
         }
 
@@ -41,8 +47,11 @@ namespace envire
 		it->time = time;
 	    }
 
+            BinaryEvents* binary_events = new BinaryEvents;
+            binary_events->swap(events);
+
 	    // and write to port
-	    port.write( events );
+	    port.write( Ptr(binary_events) );
         }
 
         void setTime( base::Time time )

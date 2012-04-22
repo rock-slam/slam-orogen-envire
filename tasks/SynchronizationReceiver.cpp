@@ -2,6 +2,7 @@
 
 #include "SynchronizationReceiver.hpp"
 #include <envire/core/Event.hpp>
+#include "Orocos.hpp"
 
 using namespace envire;
 
@@ -44,16 +45,14 @@ bool SynchronizationReceiver::startHook()
 
 void SynchronizationReceiver::updateHook()
 {
-    std::vector<envire::EnvireBinaryEvent> binary_events;
-    while (_envire_events.read(binary_events) == RTT::NewData) 
+    envire::OrocosEmitter::Ptr binary_events;
+    while (_envire_events.read(binary_events, false) == RTT::NewData) 
     {
-        env->applyEvents(binary_events);
-        std::cout << "triggered" << std::endl;
+        env->applyEvents(*binary_events);
 
         std::string export_dir = _export_directory.get();
         if (!export_dir.empty())
         {
-            std::cout << "saving" << std::endl;
             export_dir = export_dir + "/" + boost::lexical_cast<std::string>(++mCount);
             env->serialize(export_dir);
         }
