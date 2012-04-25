@@ -5,6 +5,21 @@ using_library 'envire'
 import_types_from 'base'
 import_types_from "envire/core/EventTypes.hpp"
 
+typekit do                                                                  
+    roptr_bin_envent_t     = ro_ptr('std/vector</envire/BinaryEvent>')
+
+    if type_export_policy == :used
+        # We assume that, if the caller wants a 'used' type policy, it means he
+        # wants partial exports. Move to 'selected'. oroGen would have changed
+        # it to 'all'
+        type_export_policy :selected
+    end
+
+    export_types roptr_bin_envent_t,
+        'std/vector</envire/BinaryEvent>',
+	'envire/BinaryEvent'
+end
+
 task_context "SynchronizationTransmitter" do
     output_port('envire_events', ro_ptr('std/vector</envire/BinaryEvent>')).
         doc('envire binary event').
