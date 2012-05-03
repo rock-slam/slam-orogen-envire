@@ -26,7 +26,7 @@ task_context "SynchronizationTransmitter" do
         keep_last_written_value(false)
 
     operation('loadEnvironment').
-        argument('path', 'string', 'path')
+        argument('path', 'string')
 end
 
 task_context "SynchronizationReceiver" do
