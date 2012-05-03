@@ -3,6 +3,7 @@
 #include "SynchronizationReceiver.hpp"
 #include <envire/core/Event.hpp>
 #include "Orocos.hpp"
+#include <boost/format.hpp>
 
 using namespace envire;
 
@@ -53,7 +54,10 @@ void SynchronizationReceiver::updateHook()
         std::string export_dir = _export_directory.get();
         if (!export_dir.empty())
         {
-            export_dir = export_dir + "/" + boost::lexical_cast<std::string>(++mCount);
+            using namespace boost::io;
+            boost::format formatter(export_dir);
+            formatter.exceptions(all_error_bits ^ ( too_many_args_bit | too_few_args_bit ));
+            export_dir = (formatter % (++mCount)).str();
             env->serialize(export_dir);
         }
     }
