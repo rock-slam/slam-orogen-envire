@@ -9,8 +9,5 @@
 
   <depend package="slam/envire" />
 
-  <versioncontrol type="git" url="" />
-  <export>
-    <cpp cflags="" lflags="" />
-  </export>
+  <tags>needs_opt</tags>
 </package>
