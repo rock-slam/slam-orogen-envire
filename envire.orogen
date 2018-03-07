@@ -29,6 +29,16 @@ task_context "SynchronizationTransmitter" do
         argument('path', 'string')
 end
 
+task_context "ConfigurableSynchronizationTransmitter" do
+    needs_configuration
+    
+    property "environment_path", "/std/string"
+    
+    output_port('envire_events', ro_ptr('std/vector</envire/BinaryEvent>')).
+        doc('envire binary event').
+        keep_last_written_value(true)
+end
+
 task_context "SynchronizationReceiver" do
     property('export_directory', '/std/string').
         doc "if set to a non-empty value, an envire scene will be saved for each received binary event. %1 can be used to add a counter to the generated path"
