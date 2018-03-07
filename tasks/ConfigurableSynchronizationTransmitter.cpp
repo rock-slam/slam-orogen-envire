@@ -2,7 +2,7 @@
 
 #include "ConfigurableSynchronizationTransmitter.hpp"
 #include "Orocos.hpp"
-
+#include <base/Logging.hpp>
 using namespace envire;
 
 ConfigurableSynchronizationTransmitter::ConfigurableSynchronizationTransmitter(std::string const& name)
@@ -49,7 +49,11 @@ void ConfigurableSynchronizationTransmitter::updateHook()
 {
     ConfigurableSynchronizationTransmitterBase::updateHook();
     if(!initial_map_sent){
+        LOG_ERROR_S << "Waiting";
+        sleep(8);
+        LOG_ERROR_S << "sending";
         loadEnvironment(_environment_path.get());
+        LOG_ERROR_S << "done";
         initial_map_sent = true;
     }    
 }
